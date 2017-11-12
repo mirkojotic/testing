@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,11 +22,18 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::post('/checkout', function(Request $request) {
-	
-	die($POST['payment_method_nonce']);
+Route::post('braintree/webhook', '\Laravel\Cashier\Http\Controllers\WebhookController@handleWebhook');
 
-	$request->post('payment_method_nonce');
+Route::post('/checkout/{tier}', function(Request $request, $tier) {
+    $user = Auth::user();
 
-	die('mirko');
-});
+    $user->newSubscription('main', "tier$tier")->create($_POST['payment_method_nonce'], [
+        'email' => 'joticmirko@gmail.com',
+    ]);
+    echo(json_encode($user));
+    echo(json_encode($tier));
+    echo(json_encode($_POST));
+})->where('tier', '[1-3]');
+
+
+
